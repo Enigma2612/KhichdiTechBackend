@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from typing import List
+import os
 
 app = FastAPI()
 
@@ -10,8 +11,11 @@ app = FastAPI()
 # MongoDB Setup
 # -----------------------
 
-client = AsyncIOMotorClient("mongodb://localhost:27017")
-db = client.farm_tracker
+MONGODB_URI = os.getenv('MONGODB_URI')
+DATABASE_NAME = os.getenv('DATABASE_NAME', 'srm_db')
+
+client = AsyncIOMotorClient(MONGODB_URI)
+db = client[DATABASE_NAME]
 
 users_collection = db.users
 batches_collection = db.batches
