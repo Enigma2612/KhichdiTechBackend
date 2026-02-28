@@ -1,101 +1,74 @@
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
-from dotenv import load_dotenv
+# database.py - Neon Postgres connection template with SQLAlchemy ORM for your tables
+# Install: pip install sqlalchemy psycopg[binary] python-dotenv alembic (optional for migrations)
+
 import os
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Boolean, func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
-# MongoDB connection configuration
-MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
-DATABASE_NAME = os.getenv('DATABASE_NAME', 'srm_db')
+# Neon connection string from .env: DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("Set DATABASE_URL in .env file from Neon console")
 
-class MongoDBConnection:
-    def __init__(self, uri=MONGODB_URI, timeout=5000):
-        """
-        Initialize MongoDB connection
-        
-        Args:
-            uri (str): MongoDB connection string
-            timeout (int): Connection timeout in milliseconds
-        """
-        try:
-            self.client = MongoClient(uri, serverSelectionTimeoutMS=timeout)
-            # Test connection
-            self.client.admin.command('ping')
-            self.db = self.client[DATABASE_NAME]
-            print("✓ Connected to MongoDB successfully")
-        except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-            print(f"✗ Failed to connect to MongoDB: {e}")
-            self.client = None
-            self.db = None
-    
-    def get_collection(self, collection_name):
-        """Get a collection from the database"""
-        if not self.db:
-            raise Exception("Not connected to MongoDB")
-        return self.db[collection_name]
-    
-    def insert_one(self, collection_name, document):
-        """Insert a single document"""
-        collection = self.get_collection(collection_name)
-        result = collection.insert_one(document)
-        return result.inserted_id
-    
-    def insert_many(self, collection_name, documents):
-        """Insert multiple documents"""
-        collection = self.get_collection(collection_name)
-        result = collection.insert_many(documents)
-        return result.inserted_ids
-    
-    def find_one(self, collection_name, query):
-        """Find a single document"""
-        collection = self.get_collection(collection_name)
-        return collection.find_one(query)
-    
-    def find_many(self, collection_name, query=None, limit=0):
-        """Find multiple documents"""
-        collection = self.get_collection(collection_name)
-        query = query or {}
-        return list(collection.find(query).limit(limit))
-    
-    def update_one(self, collection_name, query, update_data):
-        """Update a single document"""
-        collection = self.get_collection(collection_name)
-        result = collection.update_one(query, {"$set": update_data})
-        return result.modified_count
-    
-    def delete_one(self, collection_name, query):
-        """Delete a single document"""
-        collection = self.get_collection(collection_name)
-        result = collection.delete_one(query)
-        return result.deleted_count
-    
-    def close(self):
-        """Close the database connection"""
-        if self.client:
-            self.client.close()
-            print("✓ MongoDB connection closed")
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)  # Handles Neon's scale-to-zero
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-# Global connection instance
-db_connection = None
+# Table Models (adjust fields as needed for your use case)
+class Users(Base):
+    __tablename__ = "Users"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, index=True)
+    role = Column(String(100), unique=True)
 
+class Items(Base):
+    __tablename__ = "Items"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), index=True)
+    description = Column(String(500))
+
+# Users.items = relationship("Items", order_by=Items.id, back_populates="users")
+
+class Inventory(Base):
+    __tablename__ = "Inventory"
+    id = Column(Integer, primary_key=True, index=True)
+    item_id = Column(Integer, ForeignKey("Items.id"))
+    user_id = Column(Integer, ForeignKey("Users.id"))
+    quantity = Column(Integer, default=0)
+    price = Column(Float, default=0)
+    items = relationship("Items")
+    users = relationship("Users")
+
+class Transit(Base):
+    __tablename__ = "Transit"
+    id = Column(Integer, primary_key=True, index=True)
+    inventory_id = Column(Integer, ForeignKey("Inventory.id"))
+    from_location = Column(String(100))
+    to_location = Column(String(100))
+    status = Column(String(50), default="in_transit")
+    started_at = Column(DateTime, default=func.now())
+    inventory = relationship("Inventory")
+
+# Create tables
+Base.metadata.create_all(bind=engine)
+
+# Usage example
 def get_db():
-    """Get the global database connection"""
-    global db_connection
-    if db_connection is None:
-        db_connection = MongoDBConnection()
-    return db_connection
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
+# Test connection and create tables
 if __name__ == "__main__":
-    # Example usage
-    db = get_db()
-    
-    # # Insert a document
-    # doc_id = db.insert_one('users', {'name': 'John Doe', 'email': 'john@example.com'})
-    # print(f"Inserted document ID: {doc_id}")
-    
-    # # Find a document
-    # user = db.find_one('users', {'name': 'John Doe'})
-    # print(f"Found user: {user}")
-    
-    db.close()
+    from sqlalchemy import text
+    with SessionLocal() as session:
+        result = session.execute(text("SELECT version()"))
+        print("Connected:", result.scalar())
+    print("Tables ready: Users, Items, Inventory, Transit")

@@ -3,7 +3,10 @@ from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from typing import List
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 app = FastAPI()
 
