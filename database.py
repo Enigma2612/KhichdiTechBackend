@@ -90,12 +90,12 @@ if __name__ == "__main__":
     # Example usage
     db = get_db()
     
-    # Insert a document
-    doc_id = db.insert_one('users', {'name': 'John Doe', 'email': 'john@example.com'})
-    print(f"Inserted document ID: {doc_id}")
+    # # Insert a document
+    # doc_id = db.insert_one('users', {'name': 'John Doe', 'email': 'john@example.com'})
+    # print(f"Inserted document ID: {doc_id}")
     
-    # Find a document
-    user = db.find_one('users', {'name': 'John Doe'})
-    print(f"Found user: {user}")
+    # # Find a document
+    # user = db.find_one('users', {'name': 'John Doe'})
+    # print(f"Found user: {user}")
     
     db.close()

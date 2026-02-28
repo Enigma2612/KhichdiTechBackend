@@ -1,6 +1,12 @@
 from bson import ObjectId
-from database import Users, Items, Inventory
+from database import get_db
 from Models import UserModel, ItemModel, InventoryModel, TransferModel
+
+db = get_db()
+
+Users = db.get_collection("users")
+Items = db.get_collection("items")
+Inventory = db.get_collection("inventory")
 
 # ---------------- USERS ----------------
 
