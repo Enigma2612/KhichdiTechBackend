@@ -2,40 +2,42 @@ from pydantic import BaseModel
 from typing import Literal, Optional
 from datetime import datetime
 
+
 class UserModel(BaseModel):
-    user_id: str
+    id: int
     name: str
     role: Literal["inputter", "farmer", "processor", "distributor"]
 
 
 class ItemModel(BaseModel):
-    item_id: str
+    id: int
     name: str
-    category: str  # e.g. "fruit", "vegetable", etc.
+    type: str
 
 
 class InventoryModel(BaseModel):
-    item_id: str
-    user_id: str
-    quantity: float
+    user_id: int
+    item: int
+    qty: float
+    batch_no: Optional[str] = None
 
 
 class TransferModel(BaseModel):
-    item_id: str
-    from_user: str
-    to_user: str
-    quantity: float
+    item: int
+    from_user: int
+    to_user: int
+    qty: float
 
 
 class TransitModel(BaseModel):
-    # Reference to an inventory entry or item transfer
-    inventory_id: str = None
-    item_id: str = None
-    user_id: str = None
-    quantity: float  # quantity being shipped
-    status: Literal["packaging", "shipping", "in_transit", "delivered", "cancelled"]
-    tracking_number: str | None = None
-    expected_delivery: str | None = None
+    batch_no: str
+    user_from: int
+    user_to: int
+    item: int
+    qty: float
+    status: Optional[str] = "packaging"
+    tracking_number: Optional[str] = None
+    expected_delivery: Optional[str] = None
     placed_at: Optional[datetime] = None
     dispatched_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None

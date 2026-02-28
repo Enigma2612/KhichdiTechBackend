@@ -13,9 +13,9 @@ async def get_all_users():
     return users
 
 
-async def get_user(user_id: str):
+async def get_user(user_id: int):
     for user in users:
-        if user["user_id"] == user_id:
+        if user["id"] == user_id:
             return user
     return None
 
@@ -40,7 +40,7 @@ async def create_inventory_entry(inv_data):
     return inv_dict
 
 
-async def get_inventory_for_user(user_id: str):
+async def get_inventory_for_user(user_id: int):
     return [rec for rec in inventory if rec["user_id"] == user_id]
 
 
@@ -63,7 +63,7 @@ async def get_all_transit():
 
 async def update_transit_status(transit_id: str, status: str, tracking_number: str = None, expected_delivery: str = None):
     for t in transit:
-        if t.get("inventory_id") == transit_id:
+        if t.get("batch_no") == transit_id:
             t["status"] = status
             if tracking_number:
                 t["tracking_number"] = tracking_number
@@ -77,16 +77,17 @@ async def update_transit_status(transit_id: str, status: str, tracking_number: s
                 t["delivered_at"] = now
 
             return t
+
     return {"error": "Transit not found"}
 
 
 # ---------------- TRANSFER LOGIC ----------------
 
 async def transfer_item(transfer_data: dict):
-    item_id = transfer_data["item_id"]
+    item_id = transfer_data["item"]
     from_uid = transfer_data["from_user"]
     to_uid = transfer_data["to_user"]
-    qty = transfer_data["quantity"]
+    qty = transfer_data["qty"]
 
     from_user = await get_user(from_uid)
     to_user = await get_user(to_uid)
@@ -105,28 +106,29 @@ async def transfer_item(transfer_data: dict):
 
     from_record = None
     for rec in inventory:
-        if rec["item_id"] == item_id and rec["user_id"] == from_uid:
+        if rec["item"] == item_id and rec["user_id"] == from_uid:
             from_record = rec
             break
 
-    if not from_record or from_record["quantity"] < qty:
+    if not from_record or from_record["qty"] < qty:
         return {"error": "Insufficient quantity"}
 
-    from_record["quantity"] -= qty
+    from_record["qty"] -= qty
 
     to_record = None
     for rec in inventory:
-        if rec["item_id"] == item_id and rec["user_id"] == to_uid:
+        if rec["item"] == item_id and rec["user_id"] == to_uid:
             to_record = rec
             break
 
     if to_record:
-        to_record["quantity"] += qty
+        to_record["qty"] += qty
     else:
         inventory.append({
-            "item_id": item_id,
             "user_id": to_uid,
-            "quantity": qty
+            "item": item_id,
+            "qty": qty,
+            "batch_no": None
         })
 
     return {"message": "Transfer successful"}
