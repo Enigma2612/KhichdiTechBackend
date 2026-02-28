@@ -1,4 +1,4 @@
-Users = [
+users = [
     {'id':1, 'name':"Saksham", 'role':"farmer"},
     {'id':2, 'name':"Tharun", 'role':"inputter"},
     {'id':3, 'name':"Priya", 'role':"processor"},
@@ -9,7 +9,7 @@ Users = [
     {'id':8, 'name':"Kiran", 'role':"distributor"}
 ]
 
-Items = [
+items = [
     {'id':100, 'name':'banana', 'type':'fruit'},
     {'id':101, 'name':'apple', 'type':'fruit'},
     {'id':102, 'name':'seed', 'type':'raw'},
@@ -21,7 +21,7 @@ Items = [
     {'id':108, 'name':'pesticide', 'type':'input'}
 ]
 
-Transit = [
+transit = [
     {'batch_no': "BCH-ABC-001", 'user_from': 2, 'user_to': 1, 'item':102, 'qty':10},
     {'batch_no': "BCH-ABC-002", 'user_from': 6, 'user_to': 3, 'item':107, 'qty':50},
     {'batch_no': "BCH-ABC-003", 'user_from': 4, 'user_to': 5, 'item':100, 'qty':200},
@@ -30,7 +30,7 @@ Transit = [
     {'batch_no': "BCH-ABC-006", 'user_from': 6, 'user_to': 4, 'item':105, 'qty':120}
 ]
 
-Inventory = [
+inventory = [
     {'user_id':1, 'item':100, 'qty':4, 'batch_no':"BCH-ABX-001"},
     {'user_id':1, 'item':102, 'qty':15, 'batch_no':"BCH-ABX-002"},
     {'user_id':3, 'item':107, 'qty':80, 'batch_no':"BCH-ABX-003"},
