@@ -1,4 +1,11 @@
 from pydantic import BaseModel
+from typing import Optional
+
+class UserModel(BaseModel):
+    id: str
+    type: str  # e.g., "inputter", "farmer", "processor", "distributor"
+    email: Optional[str] = None
+    name: Optional[str] = None
 
 class InputterModel(BaseModel):
     inputter_id : str
