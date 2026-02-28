@@ -1,10 +1,10 @@
 users = [
-    {'id':1, 'name':"Saksham", 'role':"farmer"},
-    {'id':2, 'name':"Tharun", 'role':"inputter"},
+    {'id':1, 'name':"Saksham", 'role':"producer"},
+    {'id':2, 'name':"Tharun", 'role':"supplier"},
     {'id':3, 'name':"Priya", 'role':"processor"},
     {'id':4, 'name':"Ramesh", 'role':"distributor"},
-    {'id':5, 'name':"Anita", 'role':"farmer"},
-    {'id':6, 'name':"Vikram", 'role':"inputter"},
+    {'id':5, 'name':"Anita", 'role':"producer"},
+    {'id':6, 'name':"Vikram", 'role':"supplier"},
     {'id':7, 'name':"Lakshmi", 'role':"processor"},
     {'id':8, 'name':"Kiran", 'role':"distributor"}
 ]
