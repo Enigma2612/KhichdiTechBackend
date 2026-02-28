@@ -34,11 +34,15 @@ async def create_item(item_req: ItemCreateRequest):
     
     return created_item
 
+# ------- INVENTORY --------
 
-@router.get("/items")
-
+@router.get("/inventory")
 async def get_inventory():
     return await crud.get_all_inventory()
+
+@router.get("/inventory")
+async def get_inventory_for_user(user_id: str):
+    return await crud.get_inventory_for_user(user_id)
 
 
 # -------- TRANSFER --------
