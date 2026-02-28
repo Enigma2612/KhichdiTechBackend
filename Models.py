@@ -8,9 +8,13 @@ class UserModel(BaseModel):
 
 class ItemModel(BaseModel):
     name: str
+    category: str  # e.g. "fruit", "vegetable", etc.
+
+
+class InventoryModel(BaseModel):
+    item_id: str
+    user_id: str
     quantity: float
-    owner_id: str
-    stage: Literal["raw", "processed", "packaged"]
 
 
 class TransferModel(BaseModel):
