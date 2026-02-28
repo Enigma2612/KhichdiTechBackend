@@ -29,3 +29,13 @@ class TransferModel(BaseModel):
     from_user: str
     to_user: str
     quantity: float
+
+
+class TransitModel(BaseModel):
+    # Reference to an inventory entry or item transfer
+    inventory_id: str = None
+    item_id: str = None
+    user_id: str = None
+    status: Literal["packaging", "shipping", "in_transit", "delivered", "cancelled"]
+    tracking_number: str | None = None
+    expected_delivery: str | None = None
