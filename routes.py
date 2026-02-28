@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Body
-from Models import UserModel, ItemModel, ItemCreateRequest, InventoryModel, TransferModel, TransitModel
+from Models import UserModel, ItemModel, InventoryModel, TransferModel, TransitModel
 import crud
 
 router = APIRouter()
@@ -19,20 +19,8 @@ async def get_users():
 # -------- ITEMS --------
 
 @router.post("/items")
-async def create_item(item_req: ItemCreateRequest):
-    # Create the item classification
-    item_model = ItemModel(name=item_req.name, category=item_req.category)
-    created_item = await crud.create_item(item_model)
-    
-    # Create the inventory entry for this item
-    inventory_model = InventoryModel(
-        item_id=str(created_item["_id"]),
-        user_id=item_req.user_id,
-        quantity=item_req.quantity
-    )
-    await crud.create_inventory_entry(inventory_model)
-    
-    return created_item
+async def create_item(item: ItemModel):
+    return await crud.create_item(item)
 
 # ------- INVENTORY --------
 
