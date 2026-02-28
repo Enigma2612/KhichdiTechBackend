@@ -8,6 +8,10 @@ from sqlalchemy.orm import sessionmaker, relationship
 from dotenv import load_dotenv
 from datetime import datetime
 
+from sqlalchemy.exc import IntegrityError
+from typing import Optional, List, Dict, Any
+
+
 load_dotenv()
 
 # Neon connection string from .env: DATABASE_URL="postgresql://user:pass@host/db?sslmode=require"
@@ -48,8 +52,8 @@ class Transit(Base):
     __tablename__ = "Transit"
     id = Column(Integer, primary_key=True, index=True)
     inventory_id = Column(Integer, ForeignKey("Inventory.id"))
-    from_location = Column(String(100))
-    to_location = Column(String(100))
+    # from_id = Column(String(100))
+    to_id = Column(Integer, ForeignKey("Users.id"))
     status = Column(String(50), default="in_transit")
     started_at = Column(DateTime, default=func.now())
     inventory = relationship("Inventory")
@@ -65,10 +69,33 @@ def get_db():
     finally:
         db.close()
 
+
+
 # Test connection and create tables
+# if __name__ == "__main__":
+#     from sqlalchemy import text
+#     # with SessionLocal() as session:
+#     #     result = session.execute(text("SELECT version()"))
+#     #     print("Connected:", result.scalar())
+#     # print("Tables ready: Users, Items, Inventory, Transit")
+
+
+def add_user(db, name: str, role: str) -> Optional[int]:
+    """Add user and return new ID or None if exists."""
+    try:
+        user = Users(name=name, role=role)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user.id
+    except IntegrityError:
+        db.rollback()
+        return None
+    
 if __name__ == "__main__":
     from sqlalchemy import text
     with SessionLocal() as session:
-        result = session.execute(text("SELECT version()"))
-        print("Connected:", result.scalar())
-    print("Tables ready: Users, Items, Inventory, Transit")
+        print('connected')
+        result = add_user(session, 'saksham', 'farmer')
+        print(result)
+
