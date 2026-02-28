@@ -17,3 +17,4 @@ class TransferModel(BaseModel):
     item_id: str
     from_user: str
     to_user: str
+    quantity: float
