@@ -1,6 +1,7 @@
 from bson import ObjectId
 from database import get_db
 from Models import UserModel, ItemModel, InventoryModel, TransferModel, TransitModel
+from datetime import datetime, timezone
 
 db = get_db()
 
@@ -120,6 +121,9 @@ async def create_transit_entry(transit_data: TransitModel):
             except Exception:
                 pass
 
+    # Set placed_at timestamp on creation
+    t["placed_at"] = datetime.now(timezone.utc)
+
     result = await Transit.insert_one(t)
     rec = await Transit.find_one({"_id": result.inserted_id})
     if rec:
@@ -127,6 +131,10 @@ async def create_transit_entry(transit_data: TransitModel):
         for key in ("inventory_id", "item_id", "user_id"):
             if key in rec and isinstance(rec[key], ObjectId):
                 rec[key] = str(rec[key])
+        # Convert datetime objects to ISO strings for JSON serialization
+        for ts_key in ("placed_at", "dispatched_at", "delivered_at"):
+            if ts_key in rec and rec[ts_key]:
+                rec[ts_key] = rec[ts_key].isoformat()
     return rec
 
 
@@ -159,17 +167,28 @@ async def get_all_transit():
                     rec["user"] = user
             except Exception:
                 pass
+        # Convert datetime objects to ISO strings for JSON serialization
+        for ts_key in ("placed_at", "dispatched_at", "delivered_at"):
+            if ts_key in rec and rec[ts_key]:
+                rec[ts_key] = rec[ts_key].isoformat()
         rows.append(rec)
     return rows
 
 
 async def update_transit_status(transit_id: str, status: str, tracking_number: str = None, expected_delivery: str = None):
-    """Update transit status and optional tracking info."""
+    """Update transit status and optional tracking info with automatic timestamp tracking."""
     update = {"status": status}
     if tracking_number is not None:
         update["tracking_number"] = tracking_number
     if expected_delivery is not None:
         update["expected_delivery"] = expected_delivery
+
+    # Auto-populate dispatch/delivery timestamps based on status
+    now = datetime.now(timezone.utc)
+    if status in ("shipping", "in_transit"):
+        update["dispatched_at"] = now
+    elif status == "delivered":
+        update["delivered_at"] = now
 
     await Transit.update_one({"_id": ObjectId(transit_id)}, {"$set": update})
     rec = await Transit.find_one({"_id": ObjectId(transit_id)})
@@ -178,6 +197,10 @@ async def update_transit_status(transit_id: str, status: str, tracking_number: s
         for key in ("inventory_id", "item_id", "user_id"):
             if key in rec and isinstance(rec[key], ObjectId):
                 rec[key] = str(rec[key])
+        # Convert datetime objects to ISO strings for JSON serialization
+        for ts_key in ("placed_at", "dispatched_at", "delivered_at"):
+            if ts_key in rec and rec[ts_key]:
+                rec[ts_key] = rec[ts_key].isoformat()
     return rec
 
 
